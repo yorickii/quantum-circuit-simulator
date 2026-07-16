@@ -1,9 +1,12 @@
+from __future__ import annotations
 import numpy as np
 from numpy.linalg import norm
 from numpy.random import default_rng
 from numpy.typing import NDArray
-from operators import Operator
-from typing import Self
+from typing import Self, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from operators import Operator
 
 class StateVector():
 
@@ -80,7 +83,7 @@ class StateVector():
         
 
     @classmethod
-    def from_qubits(cls, initial_qubits: list[int, str, np.ndarray[complex]]) -> Self:
+    def from_qubits(cls, initial_qubits: list[int | str | NDArray[np.complex128]]) -> Self:
         """
         Initialize a quantum state vector from a tensor product of provided one-qubit states.
 
@@ -159,7 +162,7 @@ class StateVector():
         return cls(num_qubits, state)
             
                     
-    def evolve(self, operator: Operator, in_place: bool=True) -> np.ndarray:
+    def evolve(self, operator: Operator, in_place: bool=True) -> NDArray:
         """
         Evolves the state vector by the provided operator. Operates in-place by default.
 
@@ -188,7 +191,7 @@ class StateVector():
         return new_state
     
 
-    def measure_state(self, seed: int=None, in_place: bool=True) -> tuple[str, np.ndarray]:
+    def measure_state(self, seed: int=None, in_place: bool=True) -> tuple[str, NDArray]:
         """
         Measure all qubits simultaneously.
 
@@ -215,7 +218,7 @@ class StateVector():
         return format(measurement, f"0{self.num_qubits}b"), new_state
     
     
-    def measure_qubit(self, qubit: int, seed: int=None, in_place: bool=True) -> tuple[int, np.ndarray]:
+    def measure_qubit(self, qubit: int, seed: int=None, in_place: bool=True) -> tuple[int, NDArray]:
         """
         Measure the state of a specified qubit. Measures in-place by default.
 
