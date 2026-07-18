@@ -273,3 +273,11 @@ class StateVector():
             self.state = new_state
         
         return measurement, new_state
+    
+
+    def copy(self) -> Self:
+        """
+        Create a deep copy of a state vector.
+        """
+
+        return type(self)(self.num_qubits, self.state.copy())
