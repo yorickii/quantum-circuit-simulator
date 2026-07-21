@@ -183,7 +183,7 @@ class Operator():
     @classmethod
     def swap(cls) -> Self:
         """
-        Initialize a CNOT gate.
+        Initialize a swap gate.
         """
 
         return cls(2, np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]))
@@ -217,7 +217,7 @@ class Operator():
         Initialize a multi-qubit operator from the provided list of single-qubit operators.
 
         Args:
-            factors: a list of single qubit operators, provided as explicity numpy arrays or
+            factors: a list of single qubit operators, provided as explicit numpy arrays or
             operator names (\"hadamard\", \"x\", \"y\", \"z\")
 
         Returns:
@@ -257,6 +257,34 @@ class Operator():
             operator = np.kron(operator, array)
 
         return cls(len(factors), operator)
+    
+
+    @classmethod
+    def _from_factors(cls, num_qubits: int, factors: list[NDArray[np.complex128] | Self]) -> Self:
+        """
+        Essentially the same as from_factors() but with fewer shape guardrails. Mainly meant for internal use.
+        """
+        if len(factors) == 0:
+            raise ValueError("Must provide at least one factor")
+        
+        arrays = []
+
+        for factor in factors:
+            if isinstance(factor, np.ndarray):
+                arrays.append(factor)
+            
+            elif isinstance(factor, Operator):
+                arrays.append(factor.operator)
+
+            else:
+                raise ValueError(f"Invalid type {type(factor)} for an operator factor.")
+
+        operator = arrays[0]
+
+        for array in arrays[1:]:
+            operator = np.kron(operator, array)
+
+        return cls(num_qubits, operator)
 
 
     def tensor(self, other: Self) -> Self:
@@ -280,7 +308,7 @@ class Operator():
         if self.num_qubits != other.num_qubits:
             raise ValueError(f"Shape mismatch: {self.num_qubits} != {other.num_qubits}")
         
-        if isinstance(other, Self):
+        if isinstance(other, Operator):
             return Operator(self.num_qubits, self.operator @ other.operator)
         
         elif isinstance(other, StateVector):
