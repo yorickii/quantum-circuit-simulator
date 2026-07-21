@@ -288,13 +288,3 @@ class Operator():
 
         else:
             return NotImplemented
-    
-
-    def __matmul__(self, other: StateVector) -> StateVector:
-        """
-        Overload matrix multiplication to accept Operator/StateVector objects.
-        """
-        if self.num_qubits != other.num_qubits:
-            raise ValueError(f"Shape mismatch: {self.num_qubits} != {other.num_qubits}")
-        
-        return StateVector(self.num_qubits, self.operator @ other.state)
