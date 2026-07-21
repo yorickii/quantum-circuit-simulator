@@ -160,6 +160,19 @@ class StateVector():
         state = state / norm(state)
 
         return cls(num_qubits, state)
+    
+
+    @classmethod
+    def uniform_state(cls, num_qubits: int) -> Self:
+        """
+        Initialize a state having uniform probability mass on all components.
+        """
+        state = np.ones(2**num_qubits)
+
+        # Normalize
+        state = state / norm(state)
+
+        return cls(num_qubits, state)
             
                     
     def evolve(self, operator: Operator, in_place: bool=True) -> NDArray:
