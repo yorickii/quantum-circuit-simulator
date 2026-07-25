@@ -14,3 +14,11 @@ class GateApplication():
 
     operator: Operator
     qubits: tuple[int,...]
+
+
+    def __post_init__(self):
+        if len(self.qubits) != self.operator.num_qubits:
+            raise ValueError(f"Cannot apply a {self.operator.num_qubits} qubit operator to {len(self.qubits)} qubits.")
+
+        if len(set(self.qubits)) != len(self.qubits):
+            raise ValueError(f"Duplicate qubit indices provided: {self.qubits}")

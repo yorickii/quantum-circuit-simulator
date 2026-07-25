@@ -3,6 +3,7 @@ from gate_application import GateApplication
 from state_vector import StateVector
 from numpy import eye, array, ndarray, arange
 from numpy.typing import NDArray
+from typing import Iterable
 
 class Circuit():
 
@@ -10,28 +11,32 @@ class Circuit():
         
         self.gates = gates
         self.num_qubits = num_qubits
-        self.operators: list[Operator | list[int]] = []
+        self.instructions: list[Operator | list[int]] = []
+        self.compiled = False
 
     
     def simulate(self, initial_state: StateVector) -> StateVector:
         """
         Simulate the action of the compiled circuit on a StateVector.
         """
-        state = initial_state.copy()
+        if initial_state.num_qubits != self.num_qubits:
+            raise ValueError(f"Circuit expects a {self.num_qubits} qubit state vector, got {initial_state.num_qubits}")
 
-        if not self.operators:
+        if not self.compiled:
             raise ValueError("Circuit must be compiled before simulating.")
-        
-        for operator in self.operators:
-            # Operators in the circuit are either Operator objects or permutation vectors. Pick the right action.
-            if isinstance(operator, list | ndarray) and array(operator).ndim == 1:
-                state.permute_state(operator)
 
-            elif isinstance(operator, Operator):
-                state.evolve(operator)
+        state = initial_state.copy()
+        
+        for step in self.instructions:
+            # Steps in the circuit are either Operator objects or permutation vectors. Pick the right action.
+            if isinstance(step, ndarray) and step.ndim == 1:
+                state.permute_state(step)
+
+            elif isinstance(step, Operator):
+                state.evolve(step)
 
             else:
-                raise ValueError(f"Invalid operator in circuit: {operator}")
+                raise ValueError(f"Invalid instruction type in circuit: {type(step)}")
 
         return state
 
@@ -41,8 +46,14 @@ class Circuit():
         Turn the circuit's list of GateApplications into a list of operators that can actually be applied to
         a StateVector.
         """
+        self.instructions.clear()
+
         for gate in self.gates:
             qubits = gate.qubits
+
+            if any(q >= self.num_qubits or q < 0 for q in qubits):
+                raise ValueError(f"Qubit index out of range. Maximum index: {self.num_qubits - 1}")
+
             operator = gate.operator
             operator_size = operator.num_qubits
 
@@ -60,16 +71,18 @@ class Circuit():
                 permuted_state_indices = (bits << (self.num_qubits - 1 - arange(self.num_qubits))).sum(axis=1)
 
                 # Swap the qubits around, use the gate, then swap the qubits back.
-                self.operators.append(permuted_state_indices)
-                self.operators.append(self.construct_operator(gate, permuted_qubits))
-                self.operators.append(self.invert_permutation(permuted_state_indices))
+                self.instructions.append(permuted_state_indices)
+                self.instructions.append(self.construct_operator(gate, permuted_qubits))
+                self.instructions.append(self.invert_permutation(permuted_state_indices))
 
             # If the operator only acts on one qubit at a time, just add it to the list.
             else:
-                self.operators.append(self.construct_operator(gate, range(self.num_qubits)))
+                self.instructions.append(self.construct_operator(gate, range(self.num_qubits)))
+
+        self.compiled = True
 
     
-    def construct_operator(self, gate: GateApplication, ordered_qubits: list[int]) -> Operator:
+    def construct_operator(self, gate: GateApplication, ordered_qubits: Iterable[list[int]]) -> Operator:
         """
         Constructs an n-qubit operator from a GateApplication, assuming that any multi-qubit gates are only applied
         to adjacent qubits.
@@ -98,7 +111,7 @@ class Circuit():
         return Operator._from_factors(self.num_qubits,factors)
 
 
-    def invert_permutation(self, permutation_vector: list[int]) -> list[int]:
+    def invert_permutation(self, permutation_vector: list[int]) -> ndarray[int]:
         """
         Compute a permutation vector to invert a given permutation.
         """
@@ -107,4 +120,13 @@ class Circuit():
         for i, j in enumerate(permutation_vector):
             inverse[j] = i
 
-        return inverse
+        return array(inverse)
+
+
+    def update_gates(self, gates: list[GateApplication]):
+        """
+        Replace the circuit's gates with a new set of gates.
+        """
+
+        self.gates = gates
+        self.compiled = False
