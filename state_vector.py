@@ -294,3 +294,16 @@ class StateVector():
         """
 
         return type(self)(self.num_qubits, self.state.copy())
+
+
+    def permute_state(self, permutation_vector: list[int], in_place: bool=True) -> NDArray[np.complex128]:
+        """
+        Permute the state vector using the given permutation vector.
+        """
+        new_state = np.zeros_like(permutation_vector, dtype=complex)
+        new_state[permutation_vector] = self.state
+
+        if in_place:
+            self.state = new_state
+
+        return new_state
