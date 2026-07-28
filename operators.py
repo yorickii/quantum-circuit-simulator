@@ -4,6 +4,8 @@ from typing import Self, TYPE_CHECKING
 from numpy.typing import NDArray
 from state_vector import StateVector
 
+DAGGER = "\u2020"
+
 H = 1/np.sqrt(2) * np.array([[1, 1],[1,-1]],dtype=complex)
 X = np.array([[0,1],[1,0]], dtype=complex)
 Y = np.array([[0,-1j],[1j,0]], dtype=complex)
@@ -27,7 +29,7 @@ GATES = {
 
 class Operator():
     
-    def __init__(self, num_qubits: int, operator: NDArray[np.complex128]=None):
+    def __init__(self, num_qubits: int, operator: NDArray[np.complex128]=None, symbol: str='O'):
         """
         Initialize an operator.
 
@@ -51,6 +53,7 @@ class Operator():
         
         self.num_qubits = num_qubits
         self.operator = operator
+        self.symbol = symbol
 
     
     @classmethod
@@ -59,7 +62,7 @@ class Operator():
         Initialize an identity operator to act on the specified number of qubits.
         """
 
-        return cls(num_qubits, np.eye(2**num_qubits, dtype=complex))
+        return cls(num_qubits, np.eye(2**num_qubits, dtype=complex), "I")
     
     @classmethod
     def hadamard(cls) -> Self:
@@ -67,7 +70,7 @@ class Operator():
         Initialize a Hadamard gate.
         """
 
-        return cls(1, GATES['hadamard'])
+        return cls(1, GATES['hadamard'], "H")
     
 
     @classmethod
@@ -76,7 +79,7 @@ class Operator():
         Initialize a Pauli X gate.
         """
 
-        return cls(1, GATES['x'])
+        return cls(1, GATES['x'], "X")
     
 
     @classmethod
@@ -85,7 +88,7 @@ class Operator():
         Initialize a Pauli Y gate.
         """
 
-        return cls(1, GATES['y'])
+        return cls(1, GATES['y'], "Y")
     
     @classmethod
     def pauli_z(cls) -> Self:
@@ -93,7 +96,7 @@ class Operator():
         Initialize a Pauli Z gate.
         """
 
-        return cls(1, GATES['z'])
+        return cls(1, GATES['z'], "Z")
     
 
     @classmethod
@@ -102,7 +105,7 @@ class Operator():
         Initialize a phase gate.
         """
 
-        return cls(1, GATES['s'])
+        return cls(1, GATES['s'], "S")
     
     @classmethod
     def t(cls) -> Self:
@@ -110,7 +113,7 @@ class Operator():
         Initialize a T gate.
         """
 
-        return cls(1, GATES['t'])
+        return cls(1, GATES['t'], "T")
     
     
     @classmethod
@@ -120,7 +123,7 @@ class Operator():
         """
 
         return cls(1, np.array([[np.cos(theta / 2), -1j * np.sin(theta / 2)],
-                                [-1j * np.sin(theta / 2), np.cos(theta / 2)]]))
+                                [-1j * np.sin(theta / 2), np.cos(theta / 2)]]), "RX")
     
 
     @classmethod
@@ -130,7 +133,7 @@ class Operator():
         """
 
         return cls(1, np.array([[np.cos(theta / 2), -np.sin(theta / 2)],
-                                [np.sin(theta / 2), np.cos(theta / 2)]]))
+                                [np.sin(theta / 2), np.cos(theta / 2)]]), "RY")
     
 
 
@@ -140,7 +143,7 @@ class Operator():
         Initialize a z rotation gate.
         """
 
-        return cls(1, np.array([[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]]))
+        return cls(1, np.array([[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]]), "RZ")
     
 
     @classmethod
@@ -149,7 +152,7 @@ class Operator():
         Initialize a phase shift gate.
         """
 
-        return cls(1, np.array([[1, 0], [0, np.exp(1j * phi)]], dtype=complex))
+        return cls(1, np.array([[1, 0], [0, np.exp(1j * phi)]], dtype=complex), "PHASE")
     
 
     @classmethod
@@ -159,7 +162,8 @@ class Operator():
         """
 
         return cls(1, np.array([[np.cos(theta / 2), -np.exp(1j * lam) * np.sin(theta / 2)],
-                                [np.exp(1j * phi) * np.sin(theta / 2), np.exp(1j * (phi + lam)) * np.cos(theta / 2)]]))
+                                [np.exp(1j * phi) * np.sin(theta / 2), np.exp(1j * (phi + lam)) * np.cos(theta / 2)]]),
+                                            "U")
     
 
     @classmethod
@@ -168,7 +172,7 @@ class Operator():
         Initialize a CNOT gate.
         """
 
-        return cls(2, np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]))
+        return cls(2, np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]), "CNOT")
     
 
     @classmethod
@@ -177,7 +181,7 @@ class Operator():
         Initialize a CZ gate.
         """
 
-        return cls(2, np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]]))
+        return cls(2, np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]]), "CZ")
     
 
     @classmethod
@@ -186,7 +190,7 @@ class Operator():
         Initialize a swap gate.
         """
 
-        return cls(2, np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]))
+        return cls(2, np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]), "SWAP")
     
     
     @classmethod
@@ -197,7 +201,7 @@ class Operator():
 
         return cls(3, np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0],
                                 [0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1, 0]]))
+                                [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1, 0]]), "TOFF")
     
 
     @classmethod
@@ -208,7 +212,7 @@ class Operator():
 
         return cls(3, np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0],
                                 [0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0],
-                                [0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1]]))
+                                [0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1]]), "FRED")
     
 
     @classmethod
@@ -298,7 +302,7 @@ class Operator():
         """
         Compute the conjugate transpose of the operator.
         """
-        return Operator(self.num_qubits, self.operator.conj().T)
+        return Operator(self.num_qubits, self.operator.conj().T, self.symbol + DAGGER)
     
 
     def __matmul__(self, other: Self | StateVector) -> Self:
