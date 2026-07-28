@@ -316,3 +316,15 @@ class Operator():
 
         else:
             return NotImplemented
+
+
+    def __mul__(self, other: int) -> Self:
+        return Operator(self.num_qubits, other * self.operator)
+
+
+    def __xor__(self, other: Self) -> Self:
+        return self.tensor(other)
+
+
+    def __str__(self):
+        return str(self.operator)
