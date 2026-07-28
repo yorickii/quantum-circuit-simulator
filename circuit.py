@@ -7,12 +7,23 @@ from typing import Iterable
 
 class Circuit():
 
-    def __init__(self, gates: list[GateApplication], num_qubits: int):
+    def __init__(self, num_qubits: int, gates: list[GateApplication]=None):
         
-        self.gates = gates
+        self.gates = gates if gates else list()
         self.num_qubits = num_qubits
         self.instructions: list[Operator | list[int]] = []
         self.compiled = False
+
+
+    def run(self, initial_state: StateVector=None) -> StateVector:
+
+        if not self.compiled:
+            self.compile()
+
+        if not initial_state:
+            initial_state = StateVector.from_index(0, self.num_qubits)
+
+        return self.simulate(initial_state)
 
     
     def simulate(self, initial_state: StateVector) -> StateVector:
