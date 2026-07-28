@@ -307,3 +307,12 @@ class StateVector():
             self.state = new_state
 
         return new_state
+
+
+    def __str__(self):
+        output = str()
+        for i, amplitude in enumerate(self.state):
+            if not np.isclose(0, amplitude):
+                output = output + "|" + format(i, f"0{self.num_qubits}b") + f">: {amplitude: 10.4f}\n"
+
+        return output
