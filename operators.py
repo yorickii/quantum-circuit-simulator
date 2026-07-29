@@ -123,7 +123,7 @@ class Operator():
         """
 
         return cls(1, np.array([[np.cos(theta / 2), -1j * np.sin(theta / 2)],
-                                [-1j * np.sin(theta / 2), np.cos(theta / 2)]]), "RX")
+                                [-1j * np.sin(theta / 2), np.cos(theta / 2)]]), f"Rx({theta:0.2f})")
     
 
     @classmethod
@@ -133,7 +133,7 @@ class Operator():
         """
 
         return cls(1, np.array([[np.cos(theta / 2), -np.sin(theta / 2)],
-                                [np.sin(theta / 2), np.cos(theta / 2)]]), "RY")
+                                [np.sin(theta / 2), np.cos(theta / 2)]]), f"Ry({theta:0.2f})")
     
 
 
@@ -143,7 +143,7 @@ class Operator():
         Initialize a z rotation gate.
         """
 
-        return cls(1, np.array([[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]]), "RZ")
+        return cls(1, np.array([[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]]), f"Rz({theta:0.2f})")
     
 
     @classmethod
@@ -152,7 +152,7 @@ class Operator():
         Initialize a phase shift gate.
         """
 
-        return cls(1, np.array([[1, 0], [0, np.exp(1j * phi)]], dtype=complex), "PHASE")
+        return cls(1, np.array([[1, 0], [0, np.exp(1j * phi)]], dtype=complex), f"P({phi:0.2f})")
     
 
     @classmethod
@@ -163,7 +163,7 @@ class Operator():
 
         return cls(1, np.array([[np.cos(theta / 2), -np.exp(1j * lam) * np.sin(theta / 2)],
                                 [np.exp(1j * phi) * np.sin(theta / 2), np.exp(1j * (phi + lam)) * np.cos(theta / 2)]]),
-                                            "U")
+                                            f"U({theta:0.2f},{phi:0.2f},{lam:0.2f})")
     
 
     @classmethod
@@ -216,7 +216,7 @@ class Operator():
     
 
     @classmethod
-    def from_factors(cls, factors: list[NDArray[np.complex128] | Self | str]) -> Self:
+    def from_factors(cls, factors: list[NDArray[np.complex128] | Self | str], symbol: str="O") -> Self:
         """
         Initialize a multi-qubit operator from the provided list of single-qubit operators.
 
@@ -260,7 +260,7 @@ class Operator():
         for array in arrays[1:]:
             operator = np.kron(operator, array)
 
-        return cls(len(factors), operator)
+        return cls(len(factors), operator, symbol)
     
 
     @classmethod
