@@ -355,6 +355,9 @@ class Circuit():
                 # Also add whitespace and a vertical bar to the off lines.
                 if i < max(qubits):
                     lines[2 * i + 1] += (VERTICAL + (2 + len(target_symbol)) * " ")
+                    
+                elif i == max(qubits) and i < self.num_qubits - 1:
+                    lines[2 * i + 1] += (3 + len(target_symbol)) * " "
 
             # If we're not in the right range, just add circuit lines or whitespace as appropriate
             else:
