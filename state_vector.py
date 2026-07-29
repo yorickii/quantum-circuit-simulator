@@ -4,6 +4,7 @@ from numpy.linalg import norm
 from numpy.random import default_rng
 from numpy.typing import NDArray
 from typing import Self, TYPE_CHECKING
+from collections import Counter
 
 if TYPE_CHECKING:
     from operators import Operator
@@ -229,6 +230,17 @@ class StateVector():
         else:
             raise ValueError("Must provide state vector index or basis vector bitstring to get probability;",
                              f"got {type(component)}")
+
+
+    def sample(self, num_samples: int, seed: int=None) -> dict[np.str_, int]:
+        """
+        Conduct num_samples measurements and count the results.
+        """
+        rng = default_rng(seed)
+
+        probs = self.probabilities()
+
+        return dict(Counter(rng.choice(list(probs.keys()), num_samples, p=list(probs.values()))))
 
 
     def measure_state(self, seed: int=None, in_place: bool=True) -> tuple[str, NDArray]:

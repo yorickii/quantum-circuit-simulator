@@ -1,7 +1,7 @@
 from operators import Operator
 from gate_application import GateApplication
 from state_vector import StateVector
-from numpy import eye, array, ndarray, arange
+from numpy import eye, array, ndarray, arange, str_
 from numpy.typing import NDArray
 from typing import Iterable
 
@@ -22,7 +22,9 @@ class Circuit():
 
 
     def run(self, initial_state: StateVector=None) -> StateVector:
-
+        """
+        Compile the circuit and run the simulation.
+        """
         if not self.compiled:
             self.compile()
 
@@ -30,6 +32,15 @@ class Circuit():
             initial_state = StateVector.from_index(0, self.num_qubits)
 
         return self.simulate(initial_state)
+
+
+    def sample(self, num_samples: int, initial_state: StateVector=None, seed: int=None) -> dict[str_, int]:
+        """
+        Run the provided state through the circuit and take num_samples measurements of it.
+        """
+        state = self.run(initial_state)
+
+        return state.sample(num_samples, seed)
 
     
     def simulate(self, initial_state: StateVector) -> StateVector:
