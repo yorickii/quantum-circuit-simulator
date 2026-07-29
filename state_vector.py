@@ -202,7 +202,34 @@ class StateVector():
             self.state = new_state
 
         return new_state
-    
+
+
+    def probabilities(self) -> dict[str, np.float64]:
+        """
+        Get the probability of each basis state.
+        """
+        keys = [format(i, f"0{self.num_qubits}b") for i in range(len(self.state))]
+        values = list(abs(self.state)**2)
+
+        return dict(zip(keys, values))
+
+
+    def probability(self, component: str | int) -> np.float64:
+        """
+        Get the probability of a specific component of the state vector.
+        """
+        if isinstance(component, str):
+            if not all(bit in "01" for bit in component):
+                raise ValueError("Basis state must be a string of 0s and 1s")
+            index = int(component, 2)
+
+        elif isinstance(component, int):
+            index = component
+
+        else:
+            raise ValueError("Must provide state vector index or basis vector bitstring to get probability;",
+                             f"got {type(component)}")
+
 
     def measure_state(self, seed: int=None, in_place: bool=True) -> tuple[str, NDArray]:
         """
@@ -309,10 +336,14 @@ class StateVector():
         return new_state
 
 
+    def __matmul__(self, other: Self) -> np.complex128:
+        return self.state.conj().T @ other.state
+
+
     def __str__(self):
         output = str()
         for i, amplitude in enumerate(self.state):
             if not np.isclose(0, amplitude):
-                output = output + "|" + format(i, f"0{self.num_qubits}b") + f">: {amplitude: 10.4f}\n"
+                output += ("|" + format(i, f"0{self.num_qubits}b") + f">: {amplitude: 10.4f}\n")
 
         return output
