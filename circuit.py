@@ -76,11 +76,39 @@ class Circuit():
         """
         self.instructions.clear()
 
+        self.validate()
+
+        self.optimize()
+
+        self.lower()
+
+        self.compiled = True
+
+
+    def validate(self):
+        """
+        Validate all GateApplications to make sure they actually work.
+        """
         for gate in self.gates:
             qubits = gate.qubits
 
             if any(q >= self.num_qubits or q < 0 for q in qubits):
                 raise ValueError(f"Qubit index out of range. Maximum index: {self.num_qubits - 1}")
+
+
+    def optimize(self):
+        """
+        Optimize instructions and eliminate unnecessary gates.
+        """
+        pass
+
+
+    def lower(self):
+        """
+        Convert GateApplications to full state operators.
+        """
+        for gate in self.gates:
+            qubits = gate.qubits
 
             operator = gate.operator
             operator_size = operator.num_qubits
@@ -106,8 +134,6 @@ class Circuit():
             # If the operator only acts on one qubit at a time, just add it to the list.
             else:
                 self.instructions.append(self.construct_operator(gate, range(self.num_qubits)))
-
-        self.compiled = True
 
     
     def construct_operator(self, gate: GateApplication, ordered_qubits: Iterable[list[int]]) -> Operator:
