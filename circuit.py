@@ -3,7 +3,7 @@ from gate_application import GateApplication
 from state_vector import StateVector
 from numpy import eye, array, ndarray, arange, str_
 from numpy.typing import NDArray
-from typing import Iterable
+from typing import Iterable, Self
 
 WIRE = "\u2500"
 VERTICAL = "\u2502"
@@ -177,7 +177,7 @@ class Circuit():
         return array(inverse)
     
 
-    def _add_gate(self, operator: Operator, *qubits: int):
+    def _add_gate(self, operator: Operator, *qubits: int) -> Self:
         """
         Add a GateApplication to the circuit's collection of gates.
 
@@ -185,6 +185,9 @@ class Circuit():
             operator: the Operator object to add.
             qubits: the qubits the gate will act on.
         """
+        if isinstance(qubits[0], tuple):
+            qubits = qubits[0]
+            
         self.gates.append(GateApplication(operator, qubits))
         self.compiled = False
         return self
@@ -194,76 +197,76 @@ class Circuit():
     # constructors for each type of gate. Hopefully self explanatory.
 
 
-    def h(self, qubit: int):
+    def h(self, qubit: int) -> Self:
         return self._add_gate(Operator.hadamard(), qubit)
 
 
-    def x(self, qubit: int):
+    def x(self, qubit: int) -> Self:
         return self._add_gate(Operator.pauli_x(), qubit)
 
 
-    def y(self, qubit: int):
+    def y(self, qubit: int) -> Self:
         return self._add_gate(Operator.pauli_y(), qubit)
 
 
-    def z(self, qubit: int):
+    def z(self, qubit: int) -> Self:
         return self._add_gate(Operator.pauli_z(), qubit)
 
 
-    def t(self, qubit: int):
+    def t(self, qubit: int) -> Self:
         return self._add_gate(Operator.t(), qubit)
 
 
-    def phase(self, qubit: int):
+    def phase(self, qubit: int) -> Self:
         return self._add_gate(Operator.phase(), qubit)
 
 
-    def identity(self, qubit: int):
+    def identity(self, qubit: int) -> Self:
         return self._add_gate(Operator.identity(1), qubit)
 
 
-    def rx(self, qubit: int, theta: float):
+    def rx(self, qubit: int, theta: float) -> Self:
         return self._add_gate(Operator.rx(theta), qubit)
 
 
-    def ry(self, qubit: int, theta: float):
+    def ry(self, qubit: int, theta: float) -> Self:
         return self._add_gate(Operator.ry(theta), qubit)
 
 
-    def rz(self, qubit: int, theta: float):
+    def rz(self, qubit: int, theta: float) -> Self:
         return self._add_gate(Operator.rz(theta), qubit)
 
 
-    def phase_shift(self, qubit: int, phi: float):
+    def phase_shift(self, qubit: int, phi: float) -> Self:
         return self._add_gate(Operator.phase_shift(phi), qubit)
 
 
-    def u(self, qubit: int, theta: float, phi: float, lam: float):
+    def u(self, qubit: int, theta: float, phi: float, lam: float) -> Self:
         return self._add_gate(Operator.u(theta, phi, lam), qubit)
 
 
-    def cnot(self, control: int, target: int):
+    def cnot(self, control: int, target: int) -> Self:
         if control == target:
             raise ValueError("Control qubit equals target qubit")
 
         return self._add_gate(Operator.cnot(), control, target)
 
 
-    def cz(self, control: int, target: int):
+    def cz(self, control: int, target: int) -> Self:
         if control == target:
             raise ValueError("Control qubit equals target qubit")
         
         return self._add_gate(Operator.cz(), control, target)
 
 
-    def swap(self, target_1: int, target_2: int):
+    def swap(self, target_1: int, target_2: int) -> Self:
         if target_1 == target_2:
             raise ValueError("Cannot swap a qubit with itself")
         
         return self._add_gate(Operator.swap(), target_1, target_2)
 
 
-    def toffoli(self, control_1: int, control_2: int, target: int):
+    def toffoli(self, control_1: int, control_2: int, target: int) -> Self:
         if len({control_1, control_2, target}) < 3:
             raise ValueError("Control or target qubit equals another control or target qubit. ",
                              f"control_1: {control_1}, control_2: {control_2}, target: {target}")
@@ -271,7 +274,7 @@ class Circuit():
         return self._add_gate(Operator.toffoli(), control_1, control_2, target)
 
 
-    def fredkin(self, control: int, target_1: int, target_2: int):
+    def fredkin(self, control: int, target_1: int, target_2: int) -> Self:
         if len({control, target_1, target_2}) < 3:
             raise ValueError("Control or target qubit equals another control or target qubit. ",
                                 f"control: {control}, target_1: {target_1}, target_2: {target_2}")
@@ -279,7 +282,7 @@ class Circuit():
         return self._add_gate(Operator.fredkin(), control, target_1, target_2)
 
 
-    def custom_gate(self, operator: Operator, *qubits: int):
+    def custom_gate(self, operator: Operator, *qubits: int) -> Self:
         if len(set(qubits)) < len(qubits):
             raise ValueError("Gate cannot be applied multiple times to one qubit")
 
@@ -337,7 +340,8 @@ class Circuit():
                         self._print_multi_gate(lines, gate, MULT, 1)
                         
                     case _:
-                        raise ValueError(f"Unrecognized operator symbol: {gate.operator.symbol}")
+                        self._print_multi_gate(lines, gate, symbol, 0)
+                        #raise ValueError(f"Unrecognized operator symbol: {gate.operator.symbol}")
 
         output = str()
 

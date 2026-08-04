@@ -172,7 +172,7 @@ class Operator():
         Initialize a CNOT gate.
         """
 
-        return cls(2, np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]), "CNOT")
+        return cls.controlled(cls.pauli_x(), "CNOT")
     
 
     @classmethod
@@ -181,7 +181,16 @@ class Operator():
         Initialize a CZ gate.
         """
 
-        return cls(2, np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]]), "CZ")
+        return cls.controlled(cls.pauli_z())
+
+
+    @classmethod
+    def cy(cls) -> Self:
+        """
+        Initialize a CY gate.
+        """
+
+        return cls.controlled(cls.pauli_y())
     
 
     @classmethod
@@ -191,6 +200,18 @@ class Operator():
         """
 
         return cls(2, np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]), "SWAP")
+
+
+    @classmethod
+    def controlled(cls, operator: Self, symbol: str=None) -> Self:
+        """
+        Initialize an arbitrary controlled gate.
+        """
+        dim = len(operator.operator)
+        num_qubits = operator.num_qubits + 1
+        symbol = "C" + operator.symbol if not symbol else symbol
+        return cls(num_qubits, np.block([[np.eye(dim), np.zeros((dim, dim))],
+                                         [np.zeros((dim, dim)), operator.operator]]), symbol)
     
     
     @classmethod
@@ -199,9 +220,7 @@ class Operator():
         Initialize a Toffoli gate.
         """
 
-        return cls(3, np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1, 0]]), "TOFF")
+        return cls.controlled(cls.cnot(), "TOFF")
     
 
     @classmethod
@@ -210,9 +229,7 @@ class Operator():
         Initialize a Fredkin gate.
         """
 
-        return cls(3, np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0],
-                                [0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1]]), "FRED")
+        return cls.controlled(cls.swap(), "FRED")
     
 
     @classmethod
