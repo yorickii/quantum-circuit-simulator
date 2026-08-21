@@ -1,15 +1,21 @@
 from operators import Operator
 from gate_application import GateApplication
 from state_vector import StateVector
-from numpy import eye, array, ndarray, arange, str_
+from numpy import eye, array, ndarray, arange, str_, allclose
 from numpy.typing import NDArray
 from typing import Iterable, Self
+from collections import defaultdict
 
 WIRE = "\u2500"
 VERTICAL = "\u2502"
 JUNCTION = "\u253C"
 CONTROL = "\u25A0"
 MULT = "\u00D7"
+THETA = "\u03B8"
+
+SINGLE_INVOLUTORY_GATES = {'h','x','y','z'}
+MULTI_INVOLUTORY_GATES = {'cnot','toff','fred','swap','cy','cz'}
+ROTATION_GATES = {'rx','ry','rz'}
 
 class Circuit():
 
@@ -100,7 +106,105 @@ class Circuit():
         """
         Optimize instructions and eliminate unnecessary gates.
         """
-        pass
+        gate_lists = [list[str]() for _ in range(self.num_qubits)]
+        was_changed = True
+        rotations = defaultdict(list)
+
+        # Build stringy gate lists for each qubit, padding with identities so each list is the same length
+        for gate in self.gates:
+            qubits = gate.qubits
+            symbol = gate.operator.symbol
+
+            for i in qubits:
+                gate_lists[i].append(symbol.lower())
+
+            for i in range(self.num_qubits):
+                if i not in qubits:
+                    gate_lists[i].append('i')
+
+        # Do optimization passes until no optimizations remain.
+        while was_changed:
+            num_changes = 0
+
+            for gate_list in gate_lists:
+                last_gate = 'null'
+                last_index = -1
+
+                for i, gate in enumerate(gate_list):
+
+                    # Cancel known single-qubit involutory gates
+                    if gate == last_gate and gate in SINGLE_INVOLUTORY_GATES:
+                        gate_list[i] = 'i'
+                        gate_list[last_index] = 'i'
+                        num_changes += 1
+
+                        last_gate = 'null'
+                        last_index = -1
+
+                    # Cancel known multi-qubit involutory gates
+                    elif (gate == last_gate and gate in MULTI_INVOLUTORY_GATES and 
+                        self.gates[last_index].qubits == self.gates[i].qubits): # Cancellation only happens if each
+                        can_cancel = list[bool]()                               # qubit in the first gate is in the
+                                                                                # second
+                        # Go through all the qubits and check that only identities come between cancelable gates
+                        for qubit in self.gates[i].qubits:
+                            to_check = gate_lists[qubit][last_index + 1:i]
+                            can_cancel.append(all(candidate == 'i' for candidate in to_check))
+
+                        if all(can_cancel):
+                            for qubit in self.gates[i].qubits:
+                                gate_lists[qubit][i] = 'i'
+                                gate_lists[qubit][last_index] = 'i'
+                            num_changes += 1
+
+                            last_gate = 'null'
+                            last_index = -1
+
+                    # Merge known single-qubit rotation gates
+                    elif (gate.startswith(tuple(ROTATION_GATES)) and
+                          last_gate.startswith(tuple(ROTATION_GATES)) and
+                          gate[0:2] == last_gate[0:2]):
+                        rotations[last_index].append(i)
+                        gate_list[i] = 'i'
+                        num_changes += 1
+
+                    # Flag a potential cancelation or merge
+                    elif (gate.startswith(tuple(ROTATION_GATES)) or
+                          gate in SINGLE_INVOLUTORY_GATES + MULTI_INVOLUTORY_GATES):
+                        last_gate = gate
+                        last_index = i
+
+            # If we didn't make any changes to the gate lists, stop doing passes
+            was_changed = False if num_changes == 0 else True
+
+        # Construct optimized instruction list:
+        new_gates = list[GateApplication]()
+
+        # For every gate in the original set of instructions,
+        for i, gate in enumerate(self.gates):
+            # Gather all the gates from the individual gate lists
+            candidates = [gate_list[i] for gate_list in gate_lists]
+
+            # If they're all identites, we got rid of a gate--move on to the next gate
+            if all(candidate == 'i' for candidate in candidates):
+                continue
+
+            # If the index is associated with other indices, then it's a rotation we need to merge
+            elif i in rotations:
+                operator = gate.operator
+                for k in rotations[i]:
+                    operator = operator @ self.gates[k].operator
+
+                new_symbol = gate.operator.symbol[0:3] + THETA + ')'
+                operator.set_symbol(new_symbol)
+
+                new_gates.append(GateApplication(operator, gate.qubits))
+
+            # Otherwise, just add the gate to the new instruction list
+            else:
+                new_gates.append(gate)
+
+        self.gates = new_gates
 
 
     def lower(self):

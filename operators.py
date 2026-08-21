@@ -320,6 +320,13 @@ class Operator():
         Compute the conjugate transpose of the operator.
         """
         return Operator(self.num_qubits, self.operator.conj().T, self.symbol + DAGGER)
+
+
+    def set_symbol(self, symbol: str):
+        """
+        Change the operator symbol to a specified string.
+        """
+        self.symbol = symbol
     
 
     def __matmul__(self, other: Self | StateVector) -> Self:
