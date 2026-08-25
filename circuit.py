@@ -170,7 +170,7 @@ class Circuit():
 
                     # Flag a potential cancelation or merge
                     elif (gate.startswith(tuple(ROTATION_GATES)) or
-                          gate in SINGLE_INVOLUTORY_GATES + MULTI_INVOLUTORY_GATES):
+                          gate in SINGLE_INVOLUTORY_GATES | MULTI_INVOLUTORY_GATES):
                         last_gate = gate
                         last_index = i
 
