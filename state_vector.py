@@ -231,6 +231,8 @@ class StateVector():
             raise ValueError("Must provide state vector index or basis vector bitstring to get probability;",
                              f"got {type(component)}")
 
+        return abs(self.state[index])**2
+
 
     def sample(self, num_samples: int, seed: int=None) -> dict[np.str_, int]:
         """
