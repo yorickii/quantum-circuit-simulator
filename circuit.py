@@ -468,7 +468,7 @@ class Circuit():
         control_bits = [qubit for i, qubit in enumerate(qubits) if i < num_controls]
         target_bits = set(qubits) - set(control_bits)
 
-        # This is the range of qubits that are actually affected by the gate (diagrammatically, anyway).
+        # This is the range of qubits that are actually affected by the gate (diagramatically, anyway).
         qubit_indices = arange(min(qubits), max(qubits) + 1)
 
         for i in range(self.num_qubits):

@@ -239,7 +239,7 @@ class Operator():
 
         Args:
             factors: a list of single qubit operators, provided as explicit numpy arrays or
-            operator names (\"hadamard\", \"x\", \"y\", \"z\")
+            operator names (\"hadamard\", \"x\", \"y\", \"z\", etc.)
 
         Returns:
             The tensor product of the provided single-qubit operators. Product is conducted in order
