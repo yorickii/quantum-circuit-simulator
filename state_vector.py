@@ -48,7 +48,7 @@ class StateVector():
         Initialize a quantum state basis vector from the provided index.
         """
         if index < 0:
-            index = num_qubits + index
+            index = 2**num_qubits + index
 
         if index < 0 or index >= 2**num_qubits:
             raise ValueError(f"Index out of range. Index: {index}. State vector length: {2**num_qubits}")
