@@ -1,6 +1,6 @@
 from operators import Operator
 from gate_application import GateApplication
-from state_vector import StateVector
+from state_vector import StateVector, invert_permutation
 from numpy import eye, array, ndarray, arange, str_, allclose
 from numpy.typing import NDArray
 from typing import Iterable, Self
@@ -233,7 +233,7 @@ class Circuit():
                 # Swap the qubits around, use the gate, then swap the qubits back.
                 self.instructions.append(permuted_state_indices)
                 self.instructions.append(self.construct_operator(gate, permuted_qubits))
-                self.instructions.append(self.invert_permutation(permuted_state_indices))
+                self.instructions.append(invert_permutation(permuted_state_indices))
 
             # If the operator only acts on one qubit at a time, just add it to the list.
             else:
@@ -267,18 +267,6 @@ class Circuit():
                 factors.append(eye(2))
 
         return Operator._from_factors(self.num_qubits,factors)
-
-
-    def invert_permutation(self, permutation_vector: list[int]) -> ndarray[int]:
-        """
-        Compute a permutation vector to invert a given permutation.
-        """
-        inverse = [0] * len(permutation_vector)
-
-        for i, j in enumerate(permutation_vector):
-            inverse[j] = i
-
-        return array(inverse)
     
 
     def _add_gate(self, operator: Operator, *qubits: int) -> Self:

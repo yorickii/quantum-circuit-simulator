@@ -361,3 +361,14 @@ class StateVector():
                 output += ("|" + format(i, f"0{self.num_qubits}b") + f">: {amplitude: 10.4f}\n")
 
         return output
+
+def invert_permutation(permutation_vector: list[int]) -> np.ndarray[int]:
+    """
+    Compute a permutation vector to invert a given permutation.
+    """
+    inverse = [0] * len(permutation_vector)
+
+    for i, j in enumerate(permutation_vector):
+        inverse[j] = i
+
+    return np.array(inverse)
