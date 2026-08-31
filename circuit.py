@@ -214,12 +214,16 @@ class Circuit():
         for gate in self.gates:
             qubits = gate.qubits
 
+            # If the qubits came in sorted, we don't need to permute anything
+            sorted_qubits = list(qubits)
+            sorted_qubits.sort()
+
             operator = gate.operator
             operator_size = operator.num_qubits
 
             # If the operator in a gate is built for more than one qubit, we need to be careful about how
             # we handle it--all the qubits it will act on need to be moved to be adjacent to each other.
-            if operator_size > 1:
+            if operator_size > 1 and list(qubits) != sorted_qubits:
                 # Construct a permutation vector for the qubits themselves. This does not permute the state vector;
                 # just the vector that calls things "qubit 0", "qubit 1", etc.
                 permuted_qubits = list(qubits) + [i for i in sorted((set(range(self.num_qubits)) - set(qubits)))]
