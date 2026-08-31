@@ -265,7 +265,7 @@ class Operator():
             
             elif isinstance(factor, Operator):
                 if factor.num_qubits != 1:
-                    raise ValueError(f"Expected a single-qubit operator, got a {factor.num_qubits} operator")
+                    raise ValueError(f"Expected a single-qubit operator, got a {factor.num_qubits} qubit operator")
                 
                 arrays.append(factor.operator)
 
