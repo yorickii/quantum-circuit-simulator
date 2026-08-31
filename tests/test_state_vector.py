@@ -5,39 +5,36 @@ from numpy.linalg import norm
 from numpy.random import randint, choice
 from scipy.stats import chisquare
 import pytest
+import re
 
-def test_default_single_qubit_init():
+def test_init():
+    # Test single qubit init
     vec = StateVector(1)
-
     assert np.allclose(vec.state, np.array([1,0]))
 
-def test_default_multi_qubit_init():
+    # Test multi qubit init
     vec = StateVector(3)
-
     assert np.allclose(vec.state, np.array([1,0,0,0,0,0,0,0]))
 
-def test_reject_zero_qubit_state():
+    # Test rejection of 0 qubit states
     with pytest.raises(ValueError, match="State must contain at least one qubit."):
-        vec = StateVector(0)
+        StateVector(0)
 
-def test_reject_num_qubits_and_state_length_mismatch():
-    with pytest.raises(ValueError) as info:
-        vec = StateVector(1, np.array([1,0,0]))
-
-    assert str(info.value) == "Must provide a state vector of length 2**1"
+    # Test rejection of dimension mismatch
+    with pytest.raises(ValueError, match=re.escape("Must provide a state vector of length 2**1")):
+        StateVector(1, np.array([1,0,0]))
 
 def test_normalization():
+    # Test that arrays that aren't normalized get normalized when constructed into states
     not_normal = np.array([2,0])
     vec = StateVector(1, not_normal)
 
     assert not np.allclose(vec.state, not_normal)
     assert np.allclose(vec.state, np.array([1,0]))
 
-def test_reject_non_normalizable_state():
-    with pytest.raises(ValueError) as info:
-        vec = StateVector(1, np.array([0,0]))
-
-    assert str(info.value) == "State vector is non-normalizable. State: [0 0]. Norm: 0.0"
+    # Test rejection of non normalizable states
+    with pytest.raises(ValueError, match=re.escape("State vector is non-normalizable. State: [0 0]. Norm: 0.0")):
+        StateVector(1, np.array([0,0]))
 
 def test_from_index():
     # Test that from_index works correctly on valid indices
@@ -52,7 +49,7 @@ def test_from_index():
 
     # Test that from_index correctly rejects positive indices that are too large
     with pytest.raises(ValueError) as info:
-        vec = StateVector.from_index(2**num_qubits + 1, num_qubits)
+        StateVector.from_index(2**num_qubits + 1, num_qubits)
 
     assert str(info.value) == f"Index out of range. Index: {2**num_qubits + 1}. State vector length: {2**num_qubits}"
 
@@ -67,7 +64,7 @@ def test_from_index():
 
     # Test that from_index correctly rejects negative indices which are too negative
     with pytest.raises(ValueError) as info:
-        vec = StateVector.from_index(-2**num_qubits - 1, num_qubits)
+        StateVector.from_index(-2**num_qubits - 1, num_qubits)
 
     assert str(info.value) == (f"Index out of range. Index: -1. State vector length: {2**num_qubits}")
 
