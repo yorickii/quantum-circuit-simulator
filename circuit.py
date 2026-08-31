@@ -23,7 +23,7 @@ class Circuit():
         
         self.gates = gates if gates else list()
         self.num_qubits = num_qubits
-        self.instructions: list[Operator | list[int]] = []
+        self.instructions: list[Operator | ndarray] = []
         self.compiled = False
 
 
