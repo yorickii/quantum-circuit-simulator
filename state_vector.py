@@ -362,6 +362,9 @@ class StateVector():
 
         return output
 
+    def __eq__(self, other: Self) -> bool:
+        return bool((self.state == other.state).all())
+
 def invert_permutation(permutation_vector: list[int]) -> np.ndarray[int]:
     """
     Compute a permutation vector to invert a given permutation.
@@ -372,3 +375,4 @@ def invert_permutation(permutation_vector: list[int]) -> np.ndarray[int]:
         inverse[j] = i
 
     return np.array(inverse)
+    

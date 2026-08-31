@@ -356,3 +356,7 @@ class Operator():
 
     def __str__(self):
         return str(self.operator)
+
+
+    def __eq__(self, other: Self) -> bool:
+        return bool((self.operator == other.operator).all())

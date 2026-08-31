@@ -31,7 +31,7 @@ def test_dagger():
     op = Operator.pauli_y()
     dagger = op.dagger()
 
-    assert np.allclose(op.operator, dagger.operator)
+    assert op == dagger
     assert dagger.symbol == "Y\u2020"
 
 def test_mult():
@@ -40,7 +40,7 @@ def test_mult():
     op_2 = Operator.pauli_x()
     op_3 = op_1 @ op_2
 
-    assert np.allclose(op_3.operator, op_1.operator @ op_2.operator)
+    assert op_3 == op_1 @ op_2
 
     # Make sure operator multiplication rejects dimension mismatch
     op_4 = Operator.cnot()
@@ -54,7 +54,7 @@ def test_mult():
     vec = StateVector.from_basis_state('0')
     new_vec = op_3 @ vec
 
-    assert np.allclose(new_vec.state, op_3.operator @ vec.state)
+    assert new_vec == op_3 @ vec
 
 def test_tensor():
     # Test that tensor products produce expected results
@@ -73,14 +73,14 @@ def test_tensor():
     assert new_new_op.num_qubits == 4
 
     # Test that ^ override works
-    assert np.allclose(new_op.operator, (Operator(1) ^ op).operator)
+    assert new_op == Operator(1) ^ op
 
     # Test that from_factors agrees with tensor products
-    assert np.allclose(Operator.from_factors(["i", "h"]).operator, new_op.operator)
+    assert Operator.from_factors(["i", "h"]) == new_op
 
     # Test that from_factors accepts supported factor types
-    assert np.allclose(Operator.from_factors([np.eye(2), "h"]).operator, new_op.operator)
-    assert np.allclose(Operator.from_factors([Operator(1), Operator.hadamard()]).operator, new_op.operator)
+    assert Operator.from_factors([np.eye(2), "h"]) == new_op
+    assert Operator.from_factors([Operator(1), Operator.hadamard()]) == new_op
 
     # Test that from_factors rejects bad factors
     with pytest.raises(ValueError, match="Unrecognized operator name: operator"):

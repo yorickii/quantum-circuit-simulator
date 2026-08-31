@@ -154,7 +154,7 @@ def test_random_basis():
     vec = StateVector.random_basis(num_qubits, seed)
     vec_2 = StateVector.random_basis(num_qubits, seed)
 
-    assert np.allclose(vec.state, vec_2.state)
+    assert vec == vec_2
 
     # Test that random_basis only sets one component nonzero
     how_many = 0
@@ -176,7 +176,7 @@ def test_random_state():
     vec = StateVector.random_state(num_qubits, seed)
     vec_2 = StateVector.random_state(num_qubits, seed)
 
-    assert np.allclose(vec.state, vec_2.state)
+    assert vec == vec_2
 
     # Test that random_basis generates a normalized state
     magnitude = norm(vec.state)
