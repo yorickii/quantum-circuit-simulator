@@ -1,8 +1,8 @@
 from operators import Operator
 from gate_application import GateApplication
 from state_vector import StateVector, invert_permutation
-from numpy import eye, array, ndarray, arange, str_, allclose
-from numpy.typing import NDArray
+from numpy import eye, array, ndarray, arange, str_
+from numpy.random import Generator
 from typing import Iterable, Self
 from collections import defaultdict
 
@@ -40,13 +40,13 @@ class Circuit():
         return self.simulate(initial_state)
 
 
-    def sample(self, num_samples: int, initial_state: StateVector=None, seed: int=None) -> dict[str_, int]:
+    def sample(self, num_samples: int, initial_state: StateVector=None, rng: Generator | None=None) -> dict[str_, int]:
         """
         Run the provided state through the circuit and take num_samples measurements of it.
         """
         state = self.run(initial_state)
 
-        return state.sample(num_samples, seed)
+        return state.sample(num_samples, rng)
 
     
     def simulate(self, initial_state: StateVector) -> StateVector:
@@ -191,9 +191,16 @@ class Circuit():
 
             # If the index is associated with other indices, then it's a rotation we need to merge
             elif i in rotations:
-                operator = gate.operator
                 for k in rotations[i]:
+                    rotations[i] += rotations[k]
+                    rotations[k] = list()
+
+                # Get the last operator (leftmost in the multiplication)
+                operator = self.gates[rotations[i][-1]].operator
+                for k in reversed(rotations[i][:-1]):
                     operator = operator @ self.gates[k].operator
+
+                operator = operator @ gate.operator
 
                 new_symbol = gate.operator.symbol[0:3] + THETA + ')'
                 operator.set_symbol(new_symbol)
@@ -493,3 +500,9 @@ class Circuit():
                 
                 if i < self.num_qubits - 1:
                     lines[2 * i + 1] += (3 + len(target_symbol)) * " "
+
+    def copy(self) -> Self:
+        """
+        Create a deep copy of a circuit.
+        """
+        return type(self)(self.num_qubits, self.gates.copy())
