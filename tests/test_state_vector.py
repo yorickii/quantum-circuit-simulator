@@ -291,8 +291,8 @@ def test_measure_state():
                 assert component == 0
 
     # Test that seeds work
-    bitstring_1, result_1 = vec.measure_state(seed=1234, in_place=False)
-    bitstring_2, result_2 = vec.measure_state(seed=1234, in_place=False)
+    bitstring_1, result_1 = vec.measure_state(rng=1234, in_place=False)
+    bitstring_2, result_2 = vec.measure_state(rng=1234, in_place=False)
 
     assert bitstring_1 == bitstring_2 and np.allclose(result_1, result_2)
 
@@ -335,8 +335,8 @@ def test_measure_qubit():
     assert str(info.value) == "Qubit index out of range. Number of qubits: 2. Qubit index: 2."
 
     # Check that seeds work
-    measurement_1, new_state_1 = vec.measure_qubit(1, seed=1234, in_place=False)
-    measurement_2, new_state_2 = vec.measure_qubit(1, seed=1234, in_place=False)
+    measurement_1, new_state_1 = vec.measure_qubit(1, rng=1234, in_place=False)
+    measurement_2, new_state_2 = vec.measure_qubit(1, rng=1234, in_place=False)
 
     assert measurement_1 == measurement_2 and np.allclose(new_state_1, new_state_2)
 

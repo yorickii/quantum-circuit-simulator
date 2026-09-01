@@ -1,7 +1,7 @@
 from __future__ import annotations
 import numpy as np
 from numpy.linalg import norm
-from numpy.random import default_rng
+from numpy.random import default_rng, Generator
 from numpy.typing import NDArray
 from typing import Self, TYPE_CHECKING
 from collections import Counter
@@ -72,11 +72,11 @@ class StateVector():
     
 
     @classmethod
-    def random_basis(cls, num_qubits: int, seed: int=None) -> Self:
+    def random_basis(cls, num_qubits: int, rng: Generator|int|None=None) -> Self:
         """
         Initialize a random basis state quantum state.
         """
-        rng = default_rng(seed)
+        rng = default_rng(rng)
 
         index = rng.integers(0, 2**num_qubits)
 
@@ -144,11 +144,12 @@ class StateVector():
         return cls(num_qubits, state)
         
     @classmethod
-    def random_state(cls, num_qubits: int, seed: int=None) -> Self:
+    def random_state(cls, num_qubits: int, rng: Generator|int|None=None) -> Self:
         """
         Initialize a completely random state vector of specified number of qubits.
         """
-        rng = default_rng(seed)
+        rng = default_rng(rng)
+
         dim = 2**num_qubits
 
         # Generate random real and imaginary components
@@ -234,18 +235,18 @@ class StateVector():
         return abs(self.state[index])**2
 
 
-    def sample(self, num_samples: int, seed: int=None) -> dict[np.str_, int]:
+    def sample(self, num_samples: int, rng: Generator|int|None=None) -> dict[np.str_, int]:
         """
         Conduct num_samples measurements and count the results.
         """
-        rng = default_rng(seed)
+        rng = default_rng(rng)
 
         probs = self.probabilities()
 
         return dict(Counter(rng.choice(list(probs.keys()), num_samples, p=list(probs.values()))))
 
 
-    def measure_state(self, seed: int=None, in_place: bool=True) -> tuple[str, NDArray]:
+    def measure_state(self, rng: Generator|int|None=None, in_place: bool=True) -> tuple[str, NDArray]:
         """
         Measure all qubits simultaneously.
 
@@ -257,7 +258,7 @@ class StateVector():
             measurement: the bitstring (e.g. 101) of the basis state measured.
             new_state: the collapsed state vector after performing the measurement.
         """
-        rng = default_rng(seed)
+        rng = default_rng(rng)
 
         probs = abs(self.state)**2
         probs /= sum(probs)
@@ -272,7 +273,7 @@ class StateVector():
         return format(measurement, f"0{self.num_qubits}b"), new_state
     
     
-    def measure_qubit(self, qubit: int, seed: int=None, in_place: bool=True) -> tuple[int, NDArray]:
+    def measure_qubit(self, qubit: int, rng: Generator|int|None=None, in_place: bool=True) -> tuple[int, NDArray]:
         """
         Measure the state of a specified qubit. Measures in-place by default.
 
@@ -292,7 +293,7 @@ class StateVector():
         if qubit >= self.num_qubits or qubit < 0:
             raise ValueError(f"Qubit index out of range. Number of qubits: {self.num_qubits}. Qubit index: {qubit}.")
         
-        rng = default_rng(seed)
+        rng = default_rng(rng)
 
         p0 = 0
         p1 = 0
