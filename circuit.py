@@ -40,7 +40,7 @@ class Circuit():
         return self.simulate(initial_state)
 
 
-    def sample(self, num_samples: int, initial_state: StateVector=None, rng: Generator | None=None) -> dict[str_, int]:
+    def sample(self, num_samples: int, initial_state: StateVector=None, rng: Generator | None=None) -> dict[str, int]:
         """
         Run the provided state through the circuit and take num_samples measurements of it.
         """

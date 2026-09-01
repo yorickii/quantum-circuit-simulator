@@ -235,7 +235,7 @@ class StateVector():
         return abs(self.state[index])**2
 
 
-    def sample(self, num_samples: int, rng: Generator|int|None=None) -> dict[np.str_, int]:
+    def sample(self, num_samples: int, rng: Generator|int|None=None) -> dict[str, int]:
         """
         Conduct num_samples measurements and count the results.
         """
@@ -243,7 +243,7 @@ class StateVector():
 
         probs = self.probabilities()
 
-        return dict(Counter(rng.choice(list(probs.keys()), num_samples, p=list(probs.values()))))
+        return dict(Counter(str(x) for x in rng.choice(list(probs.keys()), num_samples, p=list(probs.values()))))
 
 
     def measure_state(self, rng: Generator|int|None=None, in_place: bool=True) -> tuple[str, NDArray]:
