@@ -195,17 +195,18 @@ class Circuit():
                     rotations[i] += rotations[k]
                     rotations[k] = list()
 
-                # Get the last operator (leftmost in the multiplication)
-                operator = self.gates[rotations[i][-1]].operator
-                for k in reversed(rotations[i][:-1]):
-                    operator = operator @ self.gates[k].operator
+                # Compute merged angle
+                theta = gate.operator.theta
+                for k in rotations[i]:
+                    theta += self.gates[k].operator.theta
 
-                operator = operator @ gate.operator
-
-                new_symbol = gate.operator.symbol[0:3] + THETA + ')'
-                operator.set_symbol(new_symbol)
-
-                new_gates.append(GateApplication(operator, gate.qubits))
+                # Rotate on correct axis
+                if gate.operator.symbol.lower().startswith('rx'):
+                    new_gates.append(GateApplication(Operator.rx(theta), gate.qubits))
+                elif gate.operator.symbol.lower().startswith('ry'):
+                    new_gates.append(GateApplication(Operator.ry(theta), gate.qubits))
+                elif gate.operator.symbol.lower().startswith('rz'):
+                    new_gates.append(GateApplication(Operator.rz(theta), gate.qubits))
 
             # Otherwise, just add the gate to the new instruction list
             else:

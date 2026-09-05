@@ -29,7 +29,8 @@ GATES = {
 
 class Operator():
     
-    def __init__(self, num_qubits: int, operator: NDArray[np.complex128]=None, symbol: str='O'):
+    def __init__(self, num_qubits: int, operator: NDArray[np.complex128]=None, symbol: str='O',
+                 theta: float=None, phi: float=None, lam: float=None):
         """
         Initialize an operator.
 
@@ -54,6 +55,9 @@ class Operator():
         self.num_qubits = num_qubits
         self.operator = operator
         self.symbol = symbol
+        self.theta = theta
+        self.phi = phi
+        self.lam = lam
 
     
     @classmethod
@@ -123,7 +127,7 @@ class Operator():
         """
 
         return cls(1, np.array([[np.cos(theta / 2), -1j * np.sin(theta / 2)],
-                                [-1j * np.sin(theta / 2), np.cos(theta / 2)]]), f"Rx({theta:0.2f})")
+                                [-1j * np.sin(theta / 2), np.cos(theta / 2)]]), f"Rx({theta:0.2f})", theta=theta)
     
 
     @classmethod
@@ -133,7 +137,7 @@ class Operator():
         """
 
         return cls(1, np.array([[np.cos(theta / 2), -np.sin(theta / 2)],
-                                [np.sin(theta / 2), np.cos(theta / 2)]]), f"Ry({theta:0.2f})")
+                                [np.sin(theta / 2), np.cos(theta / 2)]]), f"Ry({theta:0.2f})", theta=theta)
     
 
 
@@ -143,7 +147,8 @@ class Operator():
         Initialize a z rotation gate.
         """
 
-        return cls(1, np.array([[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]]), f"Rz({theta:0.2f})")
+        return cls(1, np.array([[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]]), f"Rz({theta:0.2f})",
+                   theta=theta)
     
 
     @classmethod
@@ -152,7 +157,7 @@ class Operator():
         Initialize a phase shift gate.
         """
 
-        return cls(1, np.array([[1, 0], [0, np.exp(1j * phi)]], dtype=complex), f"P({phi:0.2f})")
+        return cls(1, np.array([[1, 0], [0, np.exp(1j * phi)]], dtype=complex), f"P({phi:0.2f})", phi=phi)
     
 
     @classmethod
@@ -163,7 +168,7 @@ class Operator():
 
         return cls(1, np.array([[np.cos(theta / 2), -np.exp(1j * lam) * np.sin(theta / 2)],
                                 [np.exp(1j * phi) * np.sin(theta / 2), np.exp(1j * (phi + lam)) * np.cos(theta / 2)]]),
-                                            f"U({theta:0.2f},{phi:0.2f},{lam:0.2f})")
+                                            f"U({theta:0.2f},{phi:0.2f},{lam:0.2f})", theta=theta, phi=phi, lam=lam)
     
 
     @classmethod
