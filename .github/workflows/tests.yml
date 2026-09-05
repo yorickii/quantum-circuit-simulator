@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy pytest scipy
+          pip install numpy pytest scipy qiskit qiskit_aer
 
       - name: Run tests
         run: pytest
