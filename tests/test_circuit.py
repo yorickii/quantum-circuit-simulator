@@ -3,6 +3,9 @@ from operators import Operator
 from circuit import Circuit
 import numpy as np
 from numpy.random import default_rng, Generator
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector as qisState
+from qiskit_aer import AerSimulator
 import pytest
 
 def test_compile():
@@ -166,7 +169,7 @@ def test_single_qubit_optimize():
     assert np.allclose(qc.simulate(vec).state, (op @ vec).state)
 
     # Make sure rotation symbols are updated correctly
-    assert qc.gates[0].operator.symbol == 'Rx(\u03B8)'
+    assert qc.gates[0].operator.symbol == 'Rx(0.75)'
 
     # Test that identities don't break merges
     qc = Circuit(1).rx(0, 0.25).identity(0).rx(0, 0.25)
@@ -280,6 +283,121 @@ def test_end_to_end_correctness():
     qc.compile()
 
     assert np.allclose(qc.simulate(vec).state, expected)
+
+def test_against_aer():
+    # My bell state
+    qc = Circuit(2).h(0).cnot(0,1)
+    vec = StateVector.from_basis_state('00')
+    qc.compile()
+    bell = qc.simulate(vec)
+
+    # Qiskit bell state
+    qis = QuantumCircuit(2)
+    qis.h(0)
+    qis.cx(0,1)
+    qis.save_statevector()
+    sim = AerSimulator()
+    result = sim.run(qis).result()
+    state = result.get_statevector()
+
+    assert np.allclose(state.data, bell.state)
+
+    # My GHZ state
+    qc = Circuit(3).h(0).cnot(0,1).cnot(0,2)
+    vec = StateVector.from_basis_state('000')
+    qc.compile()
+    ghz = qc.simulate(vec)
+
+    # Qiskit ghz state
+    qis = QuantumCircuit(3)
+    qis.h(0)
+    qis.cx(0,1)
+    qis.cx(0,2)
+    qis.save_statevector()
+    sim = AerSimulator()
+    result = sim.run(qis).result()
+    state = result.get_statevector()
+
+    assert np.allclose(state.data, ghz.state)
+
+@pytest.mark.parametrize("seed", range(100))
+def test_random_against_aer(seed: int):
+
+    # Generate a random circuit in my sim
+    rng = default_rng(seed)
+    qc = random_circuit(rng)
+    qc.compile()
+
+    # Generate a few random states to test on
+    num_qubits = qc.num_qubits
+    states = [StateVector.random_state(num_qubits, rng) for _ in range(5)]
+
+    # Convert from my qubit convention to qiskit's qubit convention
+    bitstrings = [format(qubit, f"0{qc.num_qubits}b") for qubit in range(2**qc.num_qubits)]
+    reversed_bitstrings = [bits[::-1] for bits in bitstrings]
+    qis_indices = [int(bits, 2) for bits in reversed_bitstrings]
+    
+    # Generate a matching qiskit circuit (need a separate circuit for each state, as far as I can tell)
+    qis = [QuantumCircuit(qc.num_qubits) for _ in range(len(states))]
+    for i, state in enumerate(states):
+        qis_state = qisState(state.state[qis_indices])
+        qis[i].initialize(qis_state)
+
+    for gate in qc.gates:
+        if gate.operator.symbol.lower().startswith(('rx','ry','rz')):
+            symbol = gate.operator.symbol.lower()[:2]
+        else:
+            symbol = gate.operator.symbol.lower()
+
+        match symbol:
+            case 'i':
+                for i in range(len(qis)):
+                    qis[i].id(gate.qubits[0])
+            case 'h':
+                for i in range(len(qis)):
+                    qis[i].h(gate.qubits[0])
+            case 'x':
+                for i in range(len(qis)):
+                    qis[i].x(gate.qubits[0])
+            case 'y':
+                for i in range(len(qis)):
+                    qis[i].y(gate.qubits[0])
+            case 'z':
+                for i in range(len(qis)):
+                    qis[i].z(gate.qubits[0])
+            case 'rx':
+                for i in range(len(qis)):
+                    qis[i].rx(gate.operator.theta, gate.qubits[0])
+            case 'ry':
+                for i in range(len(qis)):
+                    qis[i].ry(gate.operator.theta, gate.qubits[0])
+            case 'rz':
+                for i in range(len(qis)):
+                    qis[i].rz(gate.operator.theta, gate.qubits[0])
+            case 'cnot':
+                for i in range(len(qis)):
+                    qis[i].cx(gate.qubits[0], gate.qubits[1])
+            case 'swap':
+                for i in range(len(qis)):
+                    qis[i].swap(gate.qubits[0], gate.qubits[1])
+            case 'toff':
+                for i in range(len(qis)):
+                    qis[i].ccx(gate.qubits[0], gate.qubits[1], gate.qubits[2])
+            case 'fred':
+                for i in range(len(qis)):
+                    qis[i].cswap(gate.qubits[0], gate.qubits[1], gate.qubits[2])
+    for i in range(len(qis)):                
+        qis[i].save_statevector()
+    sim = AerSimulator()
+
+    # Validate against qiskit
+    for i, state in enumerate(states):
+        # Could reindex the qiskit state or mine. Easier to do mine cuz I already have that permutation
+        my_final_state = qc.simulate(state).state[qis_indices]
+        result = sim.run(qis[i]).result()
+        qis_final_state = result.get_statevector().data
+
+        assert np.allclose(my_final_state, qis_final_state)
 
 @pytest.mark.parametrize("seed", range(100))
 def test_optimizer_correctness(seed: int):
